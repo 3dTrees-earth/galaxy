@@ -63,7 +63,7 @@
       <discover_datasets pattern="(?P&lt;name&gt;section_.*\.png)" directory="." recurse="false" visible="false" format="png"/>
     </collection>
     
-    <data name="overview_gif" format="gif" label="Overview Animation" from_work_dir="overview_round.gif"/>
+    <data name="overview_round" format="gif" label="Overview Animation" from_work_dir="overview_round.gif"/>
   </outputs>
   
   <tests>
@@ -79,7 +79,7 @@
       <output_collection name="top_views" type="list">
         <element name="top_view_00.png" file="top_view_00.png" ftype="png"/>
       </output_collection>
-      <output name="overview_gif" file="overview_round.gif" ftype="gif"/>
+      <output name="overview_round" file="overview_round.gif" ftype="gif"/>
     </test>
   </tests>
   
