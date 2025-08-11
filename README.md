@@ -130,8 +130,8 @@ services:
             context: .
             dockerfile: Dockerfile
         volumes:
-            - ./tools/tool_yourname/in:/in
-            - ./tools/tool_yourname/out:/out
+            - ./in:/in
+            - .out:/out
         command: ["python", "run.py"]
 ```
 
