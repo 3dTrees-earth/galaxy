@@ -14,7 +14,7 @@ Planemo can be installed using `pip install planemo`. We suggest to use a dedica
 
 ## Tool-Only Integration
 
-Tool-only integration means creating a Galaxy tool XML and ensuring the container works independently without Galaxy. The required interface is defined in `tools/<tool_repo>/src/parameters.py`.
+Tool-only integration means creating a Docker container, that works independently, without Galaxy. The required interface is defined in `/src/parameters.py` inside the tool repo.
 
 ### Steps for Tool-Only Integration
 
