@@ -40,13 +40,13 @@
     </inputs>
 
     <outputs>
-        <data name="output" format="binary" label="Standardized Point Cloud" from_work_dir="pc_standardized.laz"/>
+        <data name="pc_standardized" format="binary" label="Standardized Point Cloud" from_work_dir="pc_standardized.laz"/>
     </outputs>
 
     <tests>
         <test>
             <param name="input" value="Example_Platane.laz"/>
-            <output name="output" file="pc_standardized.laz" ftype="binary" compare="re_match"/>
+            <output name="pc_standardized" file="pc_standardized.laz" ftype="binary" compare="re_match"/>
         </test>
     </tests>
 
