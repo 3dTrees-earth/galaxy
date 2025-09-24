@@ -7,7 +7,7 @@
     </description>
 
     <requirements>
-        <container type="docker">3dtrees-tool-standard:latest</container>
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees-pc-standard:0.1</container>
     </requirements>
 
     <stdio>
