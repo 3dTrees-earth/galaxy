@@ -63,7 +63,7 @@
     </help>
     <citations>
         <citation type="bibtex">
-            @misc{3dtrees_tile_merge title = {3D Trees Tile and Merge Tool}, author = {3D Trees Project}, year = {2025}
+            @misc{3dtrees_tile_merge, title = {3D Trees Tile and Merge Tool}, author = {3D Trees Project}, year = {2025}}
         </citation>
     </citations>
 </tool>
