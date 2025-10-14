@@ -186,7 +186,7 @@ Add a new XML metadata file, **you need to use the <toolname> as a filename**.
 
 1. **Create Galaxy Tool XML** (`galaxy/tools/toolname.xml`)
 ```xml
-<tool id="3dtrees_toolname" name="Your Tool Name" version="1.0.0">
+<tool id="3dtrees_toolname" name="Your Tool Name" version="1.0.0" [adapt to github CI version] profile="24.2">
     <description>Description of what your tool does</description>
     
     <requirements>
