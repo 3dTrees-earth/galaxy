@@ -2,7 +2,7 @@
   <description>Generate 3D point cloud overview images and animations from LAZ/LAS datasets</description>
   
   <requirements>
-    <container type="docker">3dtrees-tool-overviews:latest</container>
+    <container type="docker">ghcr.io/3dtrees-earth/tool_overviews:0.2</container>
   </requirements>
   
     <command><![CDATA[
