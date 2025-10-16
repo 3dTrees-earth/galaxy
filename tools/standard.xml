@@ -13,30 +13,23 @@
         <!-- <container type="docker">ghcr.io/3dtrees-earth/3dtrees-pc-standard:@TOOL_VERSION@</container> -->
         <container type="docker">3dtrees-tool-standard:latest</container>
     </requirements>
-    <stdio>
-        <!-- Treat Docker platform warnings as non-fatal warnings -->
-        <regex match="WARNING: The requested image's platform.*does not match.*" source="stderr" level="warning" description="Docker platform mismatch warning"/>
-        <!-- Treat any other warnings as non-fatal -->
-        <regex match="WARNING:.*" source="stderr" level="warning" description="Non-critical warning"/>
-        <!-- Treat actual errors as fatal -->
-        <regex match="ERROR:.*" source="stderr" level="fatal" description="Critical error"/>
-    </stdio>
     <command detect_errors="exit_code"><![CDATA[
+        
         cd /src && /usr/local/bin/Rscript run.R
         --dataset-path '$input'
         --output-dir '/src' && ls -la .
         ]]>
     </command>
     <inputs>
-        <param name="input" type="data" format="binary" label="Point Cloud Dataset" help="LAS/LAZ point cloud file to process"/>
+        <param name="input" type="data" format="laz" label="Point Cloud Dataset" help="LAS/LAZ point cloud file to process"/>
     </inputs>
     <outputs>
-        <data name="pc_standardized" format="binary" label="Standardized Point Cloud" from_work_dir="pc_standardized.laz"/>
+        <data name="pc_standardized" format="laz" label="Standardized Point Cloud" from_work_dir="pc_standardized.laz"/>
     </outputs>
     <tests>
         <test>
             <param name="input" value="Example_Platane.laz"/>
-            <output name="pc_standardized" file="pc_standardized.laz" ftype="binary" compare="re_match"/>
+            <output name="pc_standardized" file="pc_standardized.laz" ftype="laz" compare="re_match"/>
         </test>
     </tests>
     <help>
