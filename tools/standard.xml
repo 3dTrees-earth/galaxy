@@ -28,7 +28,7 @@
     </outputs>
     <tests>
         <test>
-            <param name="input" value="Example_Platane.laz"/>
+            <param name="input" value="Example_Platane.laz" ftype="laz"/>
             <output name="pc_standardized" file="pc_standardized.laz" ftype="laz" compare="re_match"/>
         </test>
     </tests>
