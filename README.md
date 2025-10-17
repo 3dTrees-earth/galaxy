@@ -306,10 +306,21 @@ If your test works, you can also run the second command and open your browser at
 
 ## Contribute
 
+### 3Dtrees repository
 To contribute the tool, **two** PRs are needed now. First, you contribute your `toolname.xml` in the [Galaxy repo](https://github.com/3dtrees-earth/galaxy). 
 Second, you contribute the actual tool with a PR in the [3DTrees repo](https://github.com/3DTrees-earth/3dtrees). 
 
 We suggest that you use *+the same name** for both branches and PRs to not get too confused.
+
+### Galaxy toolshed
+To make the tool available on [galaxy](https://usegalaxy.eu/) you need to follow the following steps: 
+
+#### Publication of the docker image
+To ensure correct versioning of your tool and keep the process as clean as possible, we recommend publishing the docker image using our Github CI workflow. 
+Head into the repository of your tool and in the tab "Actions" create a new workflow file (`main.yml`). This will be created in `.github/workflows`.
+
+
+
 
 
 ## Extra info
