@@ -185,47 +185,124 @@ git checkout -b mytool
 Add a new XML metadata file, **you need to use the <toolname> as a filename**.
 
 1. **Create Galaxy Tool XML** (`galaxy/tools/toolname.xml`)
+
+This xml-file specfifies the tool to Galaxy. Please make sure you include:
+- `<description>` should be as short as possible! You can provide a longer description in the help section.
+- the `<macros>` for correct versioning: The `@TOOL_VERSION` is the version you specify later in the Github versioning process. Make sure they match! The `+galaxy@VERSION_SUFFIX` starts at `0` and increases if the tool itself doesn't change but you make changes to the xml-file leading to a different appearance in the Galaxy GUI.
+- `<container>` contains later the link from where the tool will pull the docker image. Make sure to change it later from the local docker image to the registery link. I'll remind you, no worries.
+- `<command>` must include `detect_errors="exit_code"` so it doesn't listen to any output in the `stderr` channel but waits for the exit code.
+- Provide min and max values for int and float params
+- Provide actual tests (check not just for a file as it could be empty but include file size) and work with very small files (<<1MB)
+- Include a creator and citation section and please include the correct credits and citations!
+
 ```xml
-<tool id="3dtrees_toolname" name="Your Tool Name" version="1.0.0" [adapt to github CI version] profile="24.2">
-    <description>Description of what your tool does</description>
-    
+<tool id="3dtrees_tile_merge" name="3Dtrees: Tile and Merge" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="24.2">
+    <description>Subsampling, tiling, merging and matching of point clouds</description>
+    <macros>
+        <token name="@TOOL_VERSION@">1.0.1</token>
+        <token name="@VERSION_SUFFIX@">0</token>
+    </macros>
     <requirements>
-    <container type="docker">3dtrees-tool-toolname:latest</container>
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees_tile_merge:@TOOL_VERSION@</container>
     </requirements>
-    
-    <command><![CDATA[
+    <command detect_errors="exit_code"><![CDATA[
         python -u /src/run.py 
         --dataset-path '$input' 
         --output-dir .
-        # other params defined in parameters.py
-        ]]>
+        --task '$operation.task'
+        #if $operation.task == 'tile':
+            --tile-size '$operation.tile_size'
+            --overlap '$operation.overlap'
+            --tiling-threshold '$operation.tiling_threshold'
+            --points-threshold '$operation.points_threshold'
+            --subsampling-resolution '$operation.subsampling_resolution'
+        #end if
+        #if $operation.task == 'merge':
+            --buffer '$operation.buffer'
+            --min-cluster-size '$operation.min_cluster_size'
+            --initial-radius '$operation.initial_radius'
+            --max-radius '$operation.max_radius'
+            --radius-step '$operation.radius_step'
+        #end if
+        --number-of-threads \${GALAXY_SLOTS:-4}
+    ]]>
     </command>
-
     <inputs>
-        <param name="input" type="data" format="binary" label="Input Dataset" 
-                help="Input file to process"/>
-        <!-- Add your specific parameters from parameters.py -->
+        <param name="input" type="data" format="zip,laz" label="Input Point Cloud or ZIP file" help="Input LAS/LAZ point cloud file or ZIP file containing prepared files"/>
+        <conditional name="operation">
+            <param name="task" type="select" label="Task">
+                <option value="tile">Tile</option>
+                <option value="merge">Merge</option>
+            </param>
+            <when value="tile">
+                <param argument="--tile-size" type="integer" min="1" max="10000" value="50" label="Tile Size" help="Size of tiles in meters"/>
+                <param argument="--overlap" type="integer" min="1" max="10000" value="20" label="Overlap" help="Overlap between tiles in meters"/>
+                <param argument="--tiling-threshold" type="float" min="0.1" max="100" value="3" label="Tiling Threshold (GB)" help="File size threshold in GB above which tiling will be applied"/>
+                <param argument="--points-threshold" type="integer" min="1" max="100000" value="1000" label="Points Threshold" help="Minimum number of points required per tile - tiles with fewer points will be deleted"/>
+                <param argument="--subsampling-resolution" type="integer" min="1" max="100" value="10" label="Subsampling Resolution (cm)" help="Voxel size for subsampling in centimeters (default: 10cm)"/>
+            </when>
+            <when value="merge">
+                <param argument="--buffer" type="float" min="0.1" max="10" value="0.2" label="Buffer Distance (m)" help="Buffer distance for whole-tree assignment (default: 0.2m)"/>
+                <param argument="--min-cluster-size" type="integer" min="1" max="10000" value="300" label="Minimum Cluster Size" help="Minimum number of points for a cluster to be considered valid (default: 300)"/>
+                <param argument="--initial-radius" type="float" min="0.1" max="10" value="1.0" label="Initial Search Radius (m)" help="Initial radius for point reassignment search (default: 1.0m)"/>
+                <param argument="--max-radius" type="float" min="0.1" max="10" value="5.0" label="Maximum Search Radius (m)" help="Maximum radius for point reassignment search (default: 5.0m)"/>
+                <param argument="--radius-step" type="float" min="0.1" max="10" value="1.0" label="Radius Step (m)" help="Radius increment step for point reassignment (default: 1.0m)"/>
+            </when>
+        </conditional>
     </inputs>
-    
     <outputs>
-        <data name="output" format="your_format" label="Output" from_work_dir="output.file"/>
+        <data name="output_tile" format="zip" label="Prepared Files" from_work_dir="prepared_files.zip">
+            <filter>operation['task'] == "tile"</filter>
+        </data>
+        <data name="output_merge" format="laz" label="Merged Point Cloud" from_work_dir="final_pc.laz">
+            <filter>operation['task'] == "merge"</filter>
+        </data>
     </outputs>
-    
     <tests>
-        <test>
-            <param name="input" value="test_input.laz"/>
-            <output name="output" file="expected_output.file"/>
+        <test expect_num_outputs="1">
+            <param name="input" value="mikro.laz"/>
+            <conditional name="operation">
+                <param name="task" value="tile"/>
+                <param name="tile_size" value="50"/>
+                <param name="overlap" value="20"/>
+                <param name="tiling_threshold" value="3"/>
+                <param name="points_threshold" value="1000"/>
+                <param name="subsampling_resolution" value="10"/>
+            </conditional>
+            <output name="output_tile">
+                <assert_contents>
+                    <has_archive_member path="00_original/input.laz"/>
+                    <has_archive_member path="01_subsampled/input_subsampled.laz"/>
+                    <has_archive_member path="02_input_SAT/.*\.laz"/>
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="1">
+            <param name="input" value="processed_files_mikro.zip" />
+            <conditional name="operation">
+                <param name="task" value="merge"/>
+            </conditional>
+            <output name="output_merge">
+                <assert_contents>
+                    <has_size value="200000" delta="100000"/>
+                </assert_contents>
+            </output>
         </test>
     </tests>
-    
     <help>
         **What it does**
-        Detailed description of your tool...
+        This tool processes 3D point cloud data for tree segmentation by either:
+        - Tiling: Subsampling the input point cloud and creating tiles for processing
+        - Merging: Merging processed tiles back into the original point cloud resolution
+      ..........
     </help>
-
+    <creator>
+        <person name="Kilian Gerberding" email="kilian.gerberding@geosense.uni-freiburg.de" identifier="0009-0002-5001-2571"/>
+        <organization name="3Dtrees-Team, University of Freiburg" url="https://github.com/3dTrees-earth"/>
+    </creator>
     <citations>
         <citation type="bibtex">
-            @misc{3dtrees_overviews title = {3D Trees Overview Generator}, author = {3D Trees Project}, year = {2025}
+            @misc{3dtrees_tile_merge, title = {3Dtrees Tile and Merge Tool}, author = {3Dtrees Project}, year = {2025}}
         </citation>
     </citations>
 </tool>
@@ -317,11 +394,139 @@ To make the tool available on [galaxy](https://usegalaxy.eu/) you need to follow
 
 #### Publication of the docker image
 To ensure correct versioning of your tool and keep the process as clean as possible, we recommend publishing the docker image using our Github CI workflow. 
-Head into the repository of your tool and in the tab "Actions" create a new workflow file (`main.yml`). This will be created in `.github/workflows`.
+Head into the repository of your tool and in the tab "Actions" create a new workflow file (`main.yml`). This will be created in `.github/workflows`. Feel free to copy the following code:
+```bash
+name: Build and Push Docker Image on Release
 
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: 3dtrees-earth/${{ github.event.repository.name }}
 
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+```
+
+This workflow will be triggered once you publish a new version of your tool, extracts the required metadata and builds a versioned Docker image which you can later add to your xml.
+
+If this workflow fails it can be due to the size of your docker image as there is just limited space (~15GB) available. Add the following snippet before the `Build and push Docker image` step. This will take a few more minutes but may resolve your issue.
+
+```bash
+      - name: Free space
+        run: |
+          sudo rm -rf \
+            /opt/hostedtoolcache \
+            /opt/google/chrome \
+            /opt/microsoft/msedge \
+            /opt/microsoft/powershell \
+            /opt/pipx \
+            /usr/local/julia* \
+            /usr/local/lib/android \
+            /usr/local/lib/node_modules \
+            /usr/local/share/chromium \
+            /usr/local/share/powershell \
+            /usr/share/dotnet \
+            /usr/share/swift
+```
+
+If you want to include large model weights, you may not be able to provide them directly in the repository. Use [Github LFS](https://docs.github.com/en/repositories/working-with-files/managing-large-files/configuring-git-large-file-storage) to store large files. To include them in the final Docker image you must modify the workflow. 
+1. Create an additional release (`eg model_v1`) where you just provide the model file as additional binary file.
+2. Edit the workflow `main.yml`:
+```bash
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: 3dtrees-earth/${{ github.event.repository.name }}
+  MODEL_VERSION: model_v1 #add the release_name
+  MODEL_FILE: src/SegmentAnyTree/model_file/PointGroup-PAPER.pt #the path of the model in your docker image
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify model file
+        run: |
+          FILE="${{ env.MODEL_FILE }}"
+          if [ ! -f "$FILE" ]; then
+            echo "::error::Model file not found: $FILE"
+            exit 1
+          fi
+
+          FILE_SIZE=$(stat -c%s "$FILE")
+          echo "Model file size: $FILE_SIZE bytes"
+
+          if [ "$FILE_SIZE" -lt 1000000 ]; then
+            echo "::error::Model file appears too small; likely not a valid binary model." #Checks for the file size to make sure it's not the pointer
+            exit 1
+          fi
+
+          echo "Model file verified."
+
+```
+Once this all worked out, modify `container` in the xml accordingly. As it's recommended to work with the macros, make sure the versions match.
+
+#### Add tool specifications to the offical repo
+1. Head to the [galaxytools-repo](https://github.com/bgruening/galaxytools/tree/master/tools) and fork it to your profile.
+2. Create a new branch with your tool-name.
+3. Create a new folder `tools/3Dtrees_tool-name` and add the following items:
+   `test-files`: The files you used to test your tool using `make test-tool-your-tool`. Make sure all files are below **1 MB** to keep the size of the rpeo as low as possible.       May feel weird to work with point clouds of a few KB but do it! :)
+   `tool-name.xml`: The final tool specification.
+   `.shed.yml`: Provides additional information to the toolshed. Create it following the [instructions](https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/shed_yml.html#). Please make sure to set `owner: bgruening` and `categories: "Geo Science"` - check out this [example](https://github.com/bgruening/galaxytools/blob/master/tools/3dtrees_tile_merge/.shed.yml)
+4. Create a pull request and work in the comments of the review process.
+
+#### Request Galaxy resources
+If you need access to GPU or need more resources you can request them [here](https://github.com/usegalaxy-eu/infrastructure-playbook/blob/master/files/galaxy/tpv/tools.yml#). Look for your tool and create a PR after the changes. You can adapt the requested ressources to the input file - will provide more information once I've tried that out. The more resources you request the longer the tool will need to actually run.
+    
 
 ## Extra info
 
