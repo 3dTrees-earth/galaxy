@@ -1,6 +1,6 @@
 <tool id="3dtrees_standardization" name="3Dtrees: LAS/LAZ Standardization" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="24.2">
     <description>
-        las/laz file checks and standardization. 
+        laz file checks and standardization. 
         <!-- The tool loads all point clouds from the specified las/laz fileand performs the
         following check. If no error occurs, it will write a laz file with Point Format &lt;= 7, which 
         is necessary to be used with e.g. pylas, in the output folder. -->
@@ -21,7 +21,7 @@
         ]]>
     </command>
     <inputs>
-        <param name="input" type="data" format="laz" label="Point Cloud Dataset" help="LAS/LAZ point cloud file to process"/>
+        <param name="input" type="data" format="laz" label="Point Cloud Dataset" help="LAZ point cloud to process"/>
     </inputs>
     <outputs>
         <data name="pc_standardized" format="laz" label="Standardized Point Cloud" from_work_dir="pc_standardized.laz"/>
@@ -69,9 +69,9 @@ This tool performs a series of checks and standardizations on a LAS/LAZ point cl
    - Writes standardized LAZ file with Point Format ≤ 7
     </help>
     <creator>
-        <person name="Julian Frey" email="julian.frey@wwd.uni-freiburg.de" identifier="0000-0001-7895-702X"/>
-        <person name="Janusch Vajna-Jehle" email="janusch.jehle@geosense.uni-freiburg.de" identifier="0009-0002-0034-9387"/>
-        <person name="Kilian Gerberding" email="kilian.gerberding@geosense.uni-freiburg.de" identifier="0009-0002-5001-2571"/>
+        <person name="Julian Frey" email="julian.frey@wwd.uni-freiburg.de" url="https://orcid.org/0000-0001-7895-702X"/>
+        <person name="Janusch Vajna-Jehle" email="janusch.jehle@geosense.uni-freiburg.de" url="https://orcid.org/0009-0002-0034-9387"/>
+        <person name="Kilian Gerberding" email="kilian.gerberding@geosense.uni-freiburg.de" url="https://orcid.org/0009-0002-5001-2571"/>
         <organization name="3Dtrees-Team, University of Freiburg" url="https://github.com/3dTrees-earth"/>
     </creator>
     <citations>
