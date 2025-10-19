@@ -521,7 +521,7 @@ Once this all worked out, modify `container` in the xml accordingly. As it's rec
 3. Create a new folder `tools/3Dtrees_tool-name` and add the following items:
    `test-files`: The files you used to test your tool using `make test-tool-your-tool`. Make sure all files are below **1 MB** to keep the size of the rpeo as low as possible.       May feel weird to work with point clouds of a few KB but do it! :)
    `tool-name.xml`: The final tool specification.
-   `.shed.yml`: Provides additional information to the toolshed. Create it following the [instructions](https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/shed_yml.html#). Please make sure to set `owner: bgruening` and `categories: "Geo Science"` - check out this [example](https://github.com/bgruening/galaxytools/blob/master/tools/3dtrees_tile_merge/.shed.yml)
+   `.shed.yml`: Provides additional information to the toolshed. Create it following the [instructions](https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/shed_yml.html#). Please make sure to set `owner: bgruening` and `categories: "Geo Science"` - check out this [example](https://github.com/bgruening/galaxytools/blob/master/tools/3dtrees_tile_merge/.shed.yml). Please keep the name lowercase.
 4. Create a pull request and work in the comments of the review process.
 
 #### Request Galaxy resources
