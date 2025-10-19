@@ -1,0 +1,131 @@
+{
+    "summary": {
+        "num_errors": 0,
+        "num_failures": 1,
+        "num_skips": 0,
+        "num_tests": 1
+    },
+    "tests": [
+        {
+            "data": {
+                "inputs": {
+                    "input": {
+                        "id": "45081333e3049042",
+                        "src": "hda"
+                    }
+                },
+                "job": {
+                    "command_line": "cp '/tmp/tmpd7bcfpbm/files/f/b/0/dataset_fb0b6694-9925-455a-9326-dd0fa05cda14.dat' /in/input.laz && cd /src && Rscript run.R --dataset-path /in/input.laz --output-dir . && ls -la .",
+                    "command_version": "",
+                    "copied_from_job_id": null,
+                    "create_time": "2025-10-19T18:14:32.501469",
+                    "dependencies": [],
+                    "exit_code": 1,
+                    "external_id": "428669",
+                    "galaxy_version": "25.0",
+                    "handler": null,
+                    "history_id": "45081333e3049042",
+                    "id": "74826a79c9d2d0c6",
+                    "inputs": {
+                        "input": {
+                            "id": "45081333e3049042",
+                            "src": "hda",
+                            "uuid": "fb0b6694-9925-455a-9326-dd0fa05cda14"
+                        }
+                    },
+                    "job_messages": [
+                        {
+                            "code_desc": "",
+                            "desc": "Fatal error: Exit code 1 ()",
+                            "error_level": 3.0,
+                            "exit_code": 1,
+                            "type": "exit_code"
+                        }
+                    ],
+                    "job_metrics": [
+                        {
+                            "name": "container_id",
+                            "plugin": "core",
+                            "raw_value": "3dtrees-tool-standard:latest",
+                            "title": "Container ID",
+                            "value": "3dtrees-tool-standard:latest"
+                        },
+                        {
+                            "name": "container_type",
+                            "plugin": "core",
+                            "raw_value": "docker",
+                            "title": "Container Type",
+                            "value": "docker"
+                        },
+                        {
+                            "name": "galaxy_slots",
+                            "plugin": "core",
+                            "raw_value": "1.0000000",
+                            "title": "Cores Allocated",
+                            "value": "1"
+                        },
+                        {
+                            "name": "start_epoch",
+                            "plugin": "core",
+                            "raw_value": "1760897673.0000000",
+                            "title": "Job Start Time",
+                            "value": "2025-10-19 20:14:33"
+                        },
+                        {
+                            "name": "end_epoch",
+                            "plugin": "core",
+                            "raw_value": "1760897677.0000000",
+                            "title": "Job End Time",
+                            "value": "2025-10-19 20:14:37"
+                        },
+                        {
+                            "name": "runtime_seconds",
+                            "plugin": "core",
+                            "raw_value": "4.0000000",
+                            "title": "Job Runtime (Wall Clock)",
+                            "value": "4 seconds"
+                        }
+                    ],
+                    "job_runner_name": null,
+                    "job_stderr": "",
+                    "job_stdout": "",
+                    "model_class": "Job",
+                    "output_collections": {},
+                    "outputs": {
+                        "pc_standardized": {
+                            "id": "74826a79c9d2d0c6",
+                            "src": "hda",
+                            "uuid": "01d202ab-96e3-40c9-9012-d2a9a3322bc1"
+                        }
+                    },
+                    "params": {
+                        "__input_ext": "\"input\"",
+                        "chromInfo": "\"/home/kg281/projects/3dtrees/galaxy/galaxy/tool-data/shared/ucsc/chrom/?.len\"",
+                        "dbkey": "\"?\""
+                    },
+                    "state": "error",
+                    "stderr": "cp: cannot create regular file '/in/input.laz': Permission denied\n",
+                    "stdout": "",
+                    "tool_id": "3dtrees_standardization",
+                    "tool_stderr": "cp: cannot create regular file '/in/input.laz': Permission denied\n",
+                    "tool_stdout": "",
+                    "update_time": "2025-10-19T18:14:37.820271",
+                    "user_email": "planemo@galaxyproject.org",
+                    "user_id": "45081333e3049042"
+                },
+                "output_problems": [
+                    "Job in error state.. tool_id: 3dtrees_standardization, exit_code: 1, stderr: cp: cannot create regular file '/in/input.laz': Permission denied\n.",
+                    "Job in error state.. tool_id: 3dtrees_standardization, exit_code: 1, stderr: cp: cannot create regular file '/in/input.laz': Permission denied\n."
+                ],
+                "status": "failure",
+                "test_index": 0,
+                "time_seconds": 12.833347082138062,
+                "tool_id": "3dtrees_standardization",
+                "tool_version": "1.0.0+galaxy0"
+            },
+            "has_data": true,
+            "id": "3dtrees_standardization-0"
+        }
+    ],
+    "version": "0.1"
+}

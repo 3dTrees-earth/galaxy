@@ -15,9 +15,9 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
     
-        cd /src && /usr/local/bin/Rscript run.R
-        --dataset-path '$input'
-        --output-dir '/src' && ls -la .
+        cp '$input' /in/input.laz && cd /src && Rscript run.R
+        --dataset-path /in/input.laz
+        --output-dir . && ls -la .
         ]]>
     </command>
     <inputs>
@@ -28,82 +28,49 @@
     </outputs>
     <tests>
         <test>
-            <param name="input" value="Example_Platane.laz" ftype="laz"/>
+            <param name="input" value="mikro.laz" ftype="laz"/>
             <output name="pc_standardized" file="pc_standardized.laz" compare="re_match"/>
         </test>
     </tests>
     <help>
-                **What it does**
+        **What it does**
 
 This tool performs a series of checks and standardizations on a LAS/LAZ point cloud file. It checks:
 
-1. Basic LAS Validation
+1. **Basic LAS Validation**
+   - Validates the LAS object using las_check()
+   - Ensures the file has at least 100 points
 
-        When a LAS file is loaded, it shall validate the LAS object using las_check().
-    
-        If any errors are returned by las_check(), it shall store them in the error list.
-    
-        If the LAS file has fewer than 100 points, it shall raise an error and skip further processing.
+2. **Bounding Box Consistency**
+   - Updates header if bounding box doesn't match points
+   - Validates spatial extent (all dimensions &gt; 1 meter)
+   - Checks Z range is plausible (-100 to 5500 meters)
 
-2. Bounding Box Consistency
-    
-        If a warning indicates that the header's bounding box does not match the points, it shall update the LAS object and store a warning.
-    
-        When checking spatial extent, it shall calculate the extend in X, Y, and Z dimensions.
-    
-        If any dimension is ≤ 1 meter, it shall raise an error indicating insufficient spatial extent.
-    
-        If the Z dimension range is &lt; -100 or &gt; 5500 meters, it shall raise an error indicating an implausible Z range.
+3. **Point Density Check**
+   - Calculates point density using convex hull
+   - Requires &gt; 500 points/m²
 
-3. Point Density Check
-    
-        When calculating point density, it shall compute the convex hull of X and Y coordinates.
-    
-        If the point density is ≤ 1000 points/m², it shall raise an error and recommend checking for ALS data or multiple plots.
+4. **Extra Byte Data Type Check**
+   - Validates extra byte attribute data types
+   - Corrects mismatches if found
 
-4. Extra Byte Data Type Check
+5. **CRS Validation**
+   - Ensures CRS is specified
+   - Validates transformation to EPSG:3857
 
-        When checking extra byte attributes, it shall map each attribute’s data type to the expected R class.
-    
-        If any mismatch is found, it shall raise a warning and attempt to correct the attribute definition.
+6. **Point Data Format Check**
+   - Downgrades format to 7 if necessary
+   - Preserves NIR channel as extra attribute
 
-5. CRS Validation
+7. **Land Coverage Validation**
+   - Validates centroid is on land using Natural Earth data
 
-        If the LAS file lacks a CRS, it shall raise an error.
-    
-        If the CRS exists, it shall attempt to transform the file to EPSG:3857.
-    
-        If the transformation fails, it shall raise an error.
-
-6. Point Data Format Check
-    
-        If the LAS Point Data Format ID &gt; 7, it shall:
-    
-            downgrade the format to 7,
-    
-            rename the NIR channel to "NIRe",
-    
-            raise a warning about potential loss of full waveform data.
-
-7. Land Coverage Validation
-    
-        If the LAS file has a valid and transformable CRS, it shall:
-    
-            calculate the centroid of the bounding box,
-    
-            check whether the centroid lies within a known land area using a shapefile.
-    
-        If the centroid is not on land, it shall raise an error.
-
-8. Output Writing
-    
-        When all checks are complete, it shall:
-    
-            If no errors are present, it shall write the LAZ file to the output folder.
-    
-            If any errors are present, it shall not write the LAZ file to the output folder.
+8. **Output Writing**
+   - Writes standardized LAZ file with Point Format ≤ 7
     </help>
     <creator>
+        <person name="Julian Frey" email="julian.frey@wwd.uni-freiburg.de" identifier="0000-0001-7895-702X"/>
+        <person name="Janusch Vajna-Jehle" email="janusch.jehle@geosense.uni-freiburg.de" identifier="0009-0002-0034-9387"/>
         <person name="Kilian Gerberding" email="kilian.gerberding@geosense.uni-freiburg.de" identifier="0009-0002-5001-2571"/>
         <organization name="3Dtrees-Team, University of Freiburg" url="https://github.com/3dTrees-earth"/>
     </creator>
