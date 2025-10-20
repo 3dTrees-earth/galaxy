@@ -524,6 +524,9 @@ Once this all worked out, modify `container` in the xml accordingly. As it's rec
    `.shed.yml`: Provides additional information to the toolshed. Create it following the [instructions](https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/shed_yml.html#). Please make sure to set `owner: bgruening` and `categories: "Geo Science"` - check out this [example](https://github.com/bgruening/galaxytools/blob/master/tools/3dtrees_tile_merge/.shed.yml). Please keep the name lowercase.
 4. Create a pull request and work in the comments of the review process.
 
+#### Request for installation
+To have your tool installed, add your tool to [this .yaml file](https://github.com/usegalaxy-eu/usegalaxy-eu-tools/blob/master/bgruening.yaml). Take a look at the other 3dtools for formatting. Your tool will now be updated every Saturday automatically - if you need to have your tool added/updated earlier, reach out to the admins.
+
 #### Request Galaxy resources
 If you need access to GPU or need more resources you can request them [here](https://github.com/usegalaxy-eu/infrastructure-playbook/blob/master/files/galaxy/tpv/tools.yml#). Look for your tool and create a PR after the changes. You can adapt the requested ressources to the input file - will provide more information once I've tried that out. The more resources you request the longer the tool will need to actually run.
     
