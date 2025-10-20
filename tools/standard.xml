@@ -7,20 +7,17 @@
         <token name="@VERSION_SUFFIX@">0</token>
     </macros>
     <requirements>
-        <container type="docker">3dtrees-tool-standard:latest</container>
-        <!-- <container type="docker">ghcr.io/3dtrees-earth/3dtrees-pc-standard:@TOOL_VERSION@</container> -->
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees-pc-standard:@TOOL_VERSION@</container>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 ## needed because the Rscript is following symlinks
 cp '$input' /in/input.laz && 
-pushd /src && 
+cd /src && 
 Rscript run.R
     --dataset-path /in/input.laz
     --output-dir .
     --min-density
     $min_density &&
-## back to the original working dir
-popd &&
 mv /src/pc_standardized.laz '$pc_standardized'
         ]]>
     </command>
@@ -35,7 +32,7 @@ mv /src/pc_standardized.laz '$pc_standardized'
         <test>
             <param name="input" value="mikro.laz" ftype="laz"/>
             <param name="min_density" value="50"/>
-            <output name="pc_standardized" file="pc_standardized.laz">
+            <output name="pc_standardized">
                 <assert_contents>
                     <has_size value="100000" delta="50000"/>
                 </assert_contents>
