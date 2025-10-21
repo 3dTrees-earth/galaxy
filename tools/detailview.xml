@@ -19,10 +19,9 @@
         --projection-backend '$projection_backend'
         --output-type both
     ]]>
-
     </command>
     <inputs>
-        <param argument="--prediction-data" name="input" type="data" format="binary" label="Input Point Cloud" help="Input LAS/LAZ point cloud file with segmented trees"/>
+        <param argument="--prediction-data" name="input" type="data" format="laz" label="Input Point Cloud" help="Input LAS/LAZ point cloud file with segmented trees"/>
         <param argument="--tree-id-col" type="text" value="PredInstance" label="Tree ID Dimension" help="Dimension name in the LAS file that contains tree instance IDs"/>
         <param argument="--n-aug" type="integer" value="10" min="1" max="50" label="Number of Augmentations" help="Number of augmentation iterations for prediction (higher = more accurate but slower)"/>
         <param argument="--projection-backend" type="select" label="Projection Backend" help="Backend for point cloud projection">
@@ -41,7 +40,7 @@
                 <action name="column_names" type="metadata" default="File,..."/>
             </actions>
         </data>
-        <data name="predictions_laz" format="binary" label="Classified Point Cloud" from_work_dir="pc_with_species.laz"/>
+        <data name="predictions_laz" format="laz" label="Classified Point Cloud" from_work_dir="pc_with_species.laz"/>
     </outputs>
     <tests>
         <test expect_num_outputs="3">
@@ -152,14 +151,6 @@ This tool performs tree species classification on segmented 3D point clouds usin
     <citations>
         <citation type="doi">
             10.5281/zenodo.14204431
-        </citation>
-        <citation type="bibtex">
-            @misc{detailview2024,
-  title = {DetailView: Tree species classification for 3D4EcoTec},
-  author = {Schindler, Zoe and Frey, Julian},
-  year = {2024},
-  doi = {10.5281/zenodo.14204431}
-}
         </citation>
     </citations>
 </tool>
