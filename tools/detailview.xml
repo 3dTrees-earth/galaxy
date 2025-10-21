@@ -7,11 +7,10 @@
         <token name="@VERSION_SUFFIX@">0</token>
     </macros>
     <requirements>
-        <!-- <container type="docker">ghcr.io/3dtrees-earth/3dtrees-detailview:@TOOL_VERSION@</container> -->
-        <container type="docker">3dtrees-tool-detailview:latest</container>
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees_detailview:@TOOL_VERSION@</container>
     </requirements>
-    <command detect_errors="exit_code">
-        ln -s '$input' input.laz &amp;&amp;
+    <command detect_errors="exit_code"><![CDATA[
+        ln -s '$input' input.laz &&
         python3 -u /app/run.py 
         --dataset-path input.laz 
         --output-dir .
@@ -19,13 +18,14 @@
         --n-aug '$n_aug'
         --projection-backend '$projection_backend'
         --output-type both
+    ]]>
 
     </command>
     <inputs>
         <param argument="--prediction-data" name="input" type="data" format="binary" label="Input Point Cloud" help="Input LAS/LAZ point cloud file with segmented trees"/>
-        <param argument="--tree-id-col" name="tree_id_col" type="text" value="PredInstance" label="Tree ID Column" help="Column name in the LAS file that contains tree instance IDs"/>
-        <param argument="--n-aug" name="n_aug" type="integer" value="10" min="1" max="50" label="Number of Augmentations" help="Number of augmentation iterations for prediction (higher = more accurate but slower)"/>
-        <param argument="--projection-backend" name="projection_backend" type="select" label="Projection Backend" help="Backend for point cloud projection">
+        <param argument="--tree-id-col" type="text" value="PredInstance" label="Tree ID Dimension" help="Dimension name in the LAS file that contains tree instance IDs"/>
+        <param argument="--n-aug" type="integer" value="10" min="1" max="50" label="Number of Augmentations" help="Number of augmentation iterations for prediction (higher = more accurate but slower)"/>
+        <param argument="--projection-backend" type="select" label="Projection Backend" help="Backend for point cloud projection">
             <option value="numpy"/>
             <option value="torch" selected="true"/>
         </param>
@@ -52,11 +52,13 @@
             <output name="predictions_csv">
                 <assert_contents>
                     <has_n_columns n="5" sep=","/>
+                    <has_n_lines n="6"/>
                 </assert_contents>
             </output>
             <output name="predictions_probs_csv">
                 <assert_contents>
                     <has_n_columns n="34" sep=","/>
+                    <has_n_lines n="6"/>
                 </assert_contents>
             </output>
             <output name="predictions_laz">
@@ -66,8 +68,8 @@
             </output>
         </test>
     </tests>
-    <help>
-        **What it does**
+    <help format="markdown">
+**What it does**
 
 This tool performs tree species classification on segmented 3D point clouds using the DetailView deep learning model. The model uses multiple projection views (side, top, bottom, and detail views) of individual trees to classify them into one of 33 tree species.
 
@@ -93,9 +95,9 @@ This tool performs tree species classification on segmented 3D point clouds usin
 1. **Species Predictions (CSV)**: Main results file containing:
    - filename: Tree identifier
    - species_id: Numeric species code
-   - species_prob: Confidence score (0-1)
-   - tree_H: Tree height in meters
-   - species: Species name (Latin binomial)
+   - species_prob: Probability of the species classification
+   - tree_H: Tree height [m]
+   - species: Species name
 
 2. **Species Probabilities (CSV)**: Detailed probability matrix with probability for each species for each tree
 
@@ -107,53 +109,40 @@ This tool performs tree species classification on segmented 3D point clouds usin
 
    The model can classify 33 tree species:
    
-   - Abies alba
-   - Acer campestre
-   - Acer pseudoplatanus
-   - Acer saccharum
-   - Betula pendula
-   - Carpinus betulus
-   - Corylus avellana
-   - Crataegus monogyna
-   - Eucalyptus miniata
-   - Euonymus europaeus
-   - Fagus sylvatica
-   - Fraxinus angustifolia
-   - Fraxinus excelsior
-   - Larix decidua
-   - Picea abies
-   - Picea glauca
-   - Pinus contorta
-   - Pinus nigra
-   - Pinus pinaster
-   - Pinus radiata
-   - Pinus resinosa
-   - Pinus sylvestris
-   - Populus deltoides
-   - Populus tremuloides
-   - Prunus avium
-   - Pseudotsuga menziesii
-   - Quercus faginea
-   - Quercus ilex
-   - Quercus petraea
-   - Quercus robur
-   - Quercus rubra
-   - Tilia cordata
-   - Ulmus laevis
+   - [Abies alba](https://en.wikipedia.org/wiki/Abies_alba)
+   - [Acer campestre](https://en.wikipedia.org/wiki/Acer_campestre)
+   - [Acer pseudoplatanus](https://en.wikipedia.org/wiki/Acer_pseudoplatanus)
+   - [Acer saccharum](https://en.wikipedia.org/wiki/Acer_saccharum)
+   - [Betula pendula](https://en.wikipedia.org/wiki/Betula_pendula)
+   - [Carpinus betulus](https://en.wikipedia.org/wiki/Carpinus_betulus)
+   - [Corylus avellana](https://en.wikipedia.org/wiki/Corylus_avellana)
+   - [Crataegus monogyna](https://en.wikipedia.org/wiki/Crataegus_monogyna)
+   - [Eucalyptus miniata](https://en.wikipedia.org/wiki/Eucalyptus_miniata)
+   - [Euonymus europaeus](https://en.wikipedia.org/wiki/Euonymus_europaeus)
+   - [Fagus sylvatica](https://en.wikipedia.org/wiki/Fagus_sylvatica)
+   - [Fraxinus angustifolia](https://en.wikipedia.org/wiki/Fraxinus_angustifolia)
+   - [Fraxinus excelsior](https://en.wikipedia.org/wiki/Fraxinus_excelsior)
+   - [Larix decidua](https://en.wikipedia.org/wiki/Larix_decidua)
+   - [Picea abies](https://en.wikipedia.org/wiki/Picea_abies)
+   - [Picea glauca](https://en.wikipedia.org/wiki/Picea_glauca)
+   - [Pinus contorta](https://en.wikipedia.org/wiki/Pinus_contorta)
+   - [Pinus nigra](https://en.wikipedia.org/wiki/Pinus_nigra)
+   - [Pinus pinaster](https://en.wikipedia.org/wiki/Pinus_pinaster)
+   - [Pinus radiata](https://en.wikipedia.org/wiki/Pinus_radiata)
+   - [Pinus resinosa](https://en.wikipedia.org/wiki/Pinus_resinosa)
+   - [Pinus sylvestris](https://en.wikipedia.org/wiki/Pinus_sylvestris)
+   - [Populus deltoides](https://en.wikipedia.org/wiki/Populus_deltoides)
+   - [Populus tremuloides](https://en.wikipedia.org/wiki/Populus_tremuloides)
+   - [Prunus avium](https://en.wikipedia.org/wiki/Prunus_avium)
+   - [Pseudotsuga menziesii](https://en.wikipedia.org/wiki/Pseudotsuga_menziesii)
+   - [Quercus faginea](https://en.wikipedia.org/wiki/Quercus_faginea)
+   - [Quercus ilex](https://en.wikipedia.org/wiki/Quercus_ilex)
+   - [Quercus petraea](https://en.wikipedia.org/wiki/Quercus_petraea)
+   - [Quercus robur](https://en.wikipedia.org/wiki/Quercus_robur)
+   - [Quercus rubra](https://en.wikipedia.org/wiki/Quercus_rubra)
+   - [Tilia cordata](https://en.wikipedia.org/wiki/Tilia_cordata)
+   - [Ulmus laevis](https://en.wikipedia.org/wiki/Ulmus_laevis)
    
-   
-**Citation**
-
-When using this tool, please cite:
-
-Puliti et al. (2024) Benchmarking tree species classification from proximally-sensed laser scanning data: 
-introducing the FOR-species20K dataset. ArXiv. https://www.arxiv.org/abs/2408.06507
-
-**Model Information**
-
-- Model: DenseNet201 ensemble with multi-view fusion
-- Training dataset: FOR-species20K
-- DOI: 10.5281/zenodo.14204431
     </help>
     <creator>
         <person name="Julian Frey" email="julian.frey@wwd.uni-freiburg.de" url="https://orcid.org/0000-0001-7895-702X"/>
