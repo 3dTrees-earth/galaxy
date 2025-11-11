@@ -6,6 +6,11 @@
   </requirements>
   
     <command><![CDATA[
+        export HOME=/tmp && 
+        export XDG_CACHE_HOME=/tmp/.cache && 
+        export XDG_CONFIG_HOME=/tmp/.config && 
+        export FONTCONFIG_CACHE=/tmp/.fontconfig && 
+        export MPLCONFIGDIR=/tmp/.matplotlib && 
         python -u /src/run.py 
         --dataset-path '$input' 
         --max-points '$max_points' 
@@ -30,7 +35,7 @@
     
     <param name="image_height" type="integer" value="768" label="Image Height" help="Height of output images in pixels"/>
     
-    <param name="top_views_deg" type="integer" value="10" label="Top View Rotation Step" help="Angular step size for top view rotation in degrees"/>
+    <param name="top_views_deg" type="integer" value="180" label="Top View Rotation Step" help="Angular step size for top view rotation in degrees (180 = 2 views, 120 = 3 views, 90 = 4 views)"/>
     
     <param name="cmap" type="select" label="Color Map" help="Colormap for point cloud visualization">
       <option value="turbo" selected="True">Turbo</option>

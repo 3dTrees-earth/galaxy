@@ -2,15 +2,16 @@
     <description>Convert LAS/LAZ point clouds to Cesium 3D Tiles with custom attribute support</description>
 
     <requirements>
-        <requirement type="package" version="11.0.0">py3dtiles</requirement>
-        <requirement type="package" version="2.5">laspy</requirement>
-        <requirement type="package" version="3.6">pyproj</requirement>
+        <container type="docker">3dtrees-tool-py3dtiles:latest</container>
     </requirements>
 
     <command><![CDATA[
-        python '$__tool_directory__/../tools/tool_py3dtiles/src/run.py'
-        --input '$input'
-        --output-dir '.'
+        export NUMBA_CACHE_DIR=\$TMPDIR &&
+        ln -s '$input' input.laz &&
+        mkdir -p tiles_output &&
+        python /src/run.py
+        --input input.laz
+        --output-dir tiles_output
         #if $extra_fields
             --extra-fields '$extra_fields'
         #end if
@@ -34,12 +35,12 @@
     </inputs>
 
     <outputs>
-        <data name="tileset_json" format="json" label="3D Tileset Metadata" from_work_dir="tileset.json">
+        <data name="tileset_json" format="json" label="3D Tileset Metadata" from_work_dir="tiles_output/tileset.json">
             <discover_datasets pattern="__designation_and_ext__" directory="." visible="true" />
         </data>
         
         <collection name="tile_files" type="list" label="3D Tile Files">
-            <discover_datasets pattern="(?P&lt;name&gt;.*\.pnts)" directory="." recurse="true" visible="false" format="binary"/>
+            <discover_datasets pattern="(?P&lt;name&gt;.*\.pnts)" directory="tiles_output" recurse="true" visible="false" format="binary"/>
         </collection>
     </outputs>
 

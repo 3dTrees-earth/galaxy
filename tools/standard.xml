@@ -29,9 +29,12 @@
     </stdio>
 
     <command><![CDATA[
-        cd /src && /usr/local/bin/Rscript run.R
-        --dataset-path '$input'
-        --output-dir '/src' && ls -la .
+        WORK_DIR=\$(pwd) &&
+        cp '$input' input.laz &&
+        cd /src &&
+        /usr/local/bin/Rscript run.R
+        --dataset-path "\$WORK_DIR/input.laz"
+        --output-dir "\$WORK_DIR"
         ]]>
     </command>
 
