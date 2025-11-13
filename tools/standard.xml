@@ -31,8 +31,7 @@
     <command><![CDATA[
         WORK_DIR=\$(pwd) &&
         cp '$input' input.laz &&
-        cd /src &&
-        /usr/local/bin/Rscript run.R
+        /usr/local/bin/Rscript /src/run.R
         --dataset-path "\$WORK_DIR/input.laz"
         --output-dir "\$WORK_DIR"
         ]]>
@@ -43,7 +42,7 @@
     </inputs>
 
     <outputs>
-        <data name="pc_standardized" format="binary" label="Standardized Point Cloud" from_work_dir="pc_standardized.laz"/>
+        <data name="pc_standardized" format="laz" label="Standardized Point Cloud" from_work_dir="pc_standardized.laz"/>
     </outputs>
 
     <tests>
