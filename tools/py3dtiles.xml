@@ -1,4 +1,4 @@
-<tool id="3dtrees_py3dtiles" name="3D Trees Py3DTiles Converter" version="1.0.0" profile="16.04">
+<tool id="3dtrees_py3dtiles" name="3D Trees Py3DTiles Converter" version="1.0.4" profile="16.04">
     <description>Convert LAS/LAZ point clouds to Cesium 3D Tiles with custom attribute support</description>
 
     <requirements>
@@ -35,12 +35,15 @@
     </inputs>
 
     <outputs>
-        <data name="tileset_json" format="json" label="3D Tileset Metadata" from_work_dir="tiles_output/tileset.json">
-            <discover_datasets pattern="__designation_and_ext__" directory="." visible="true" />
-        </data>
+        <!-- Root level: tileset.json metadata -->
+        <data name="tileset_json" format="json" label="tileset" from_work_dir="tiles_output/tileset.json" />
         
-        <collection name="tile_files" type="list" label="3D Tile Files">
-            <discover_datasets pattern="(?P&lt;name&gt;.*\.pnts)" directory="tiles_output" recurse="true" visible="false" format="binary"/>
+        <!-- Root level: preview.pnts thumbnail -->
+        <data name="preview_pnts" format="pnts" label="preview" from_work_dir="tiles_output/preview.pnts" />
+        
+        <!-- Points subdirectory: all r*.pnts tile files -->
+        <collection name="points_tiles" type="list" label="points">
+            <discover_datasets pattern="(?P&lt;designation&gt;r.*)\.pnts" directory="tiles_output" recurse="true" visible="false" format="pnts"/>
         </collection>
     </outputs>
 
