@@ -43,6 +43,10 @@
 
     <outputs>
         <data name="pc_standardized" format="laz" label="standardized" from_work_dir="pc_standardized.laz"/>
+        <data name="metadata_json" format="json" label="metadata" from_work_dir="input.json"/>
+        <data name="convex_hull" format="geojson" label="convex_hull" from_work_dir="convex_hull_wgs84.GeoJSON">
+            <filter>True</filter>  <!-- Optional output - may not exist if CRS not transformable -->
+        </data>
     </outputs>
 
     <tests>

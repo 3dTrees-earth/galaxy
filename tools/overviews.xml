@@ -11,7 +11,7 @@
         export XDG_CONFIG_HOME=/tmp/.config && 
         export FONTCONFIG_CACHE=/tmp/.fontconfig && 
         export MPLCONFIGDIR=/tmp/.matplotlib && 
-        python -u /opt/3dtrees/run.py 
+        python -u /src/run.py 
         --dataset-path '$input' 
         --max-points '$max_points' 
         --section-width '$section_width' 

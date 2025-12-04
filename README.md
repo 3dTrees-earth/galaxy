@@ -302,7 +302,7 @@ make tool-xml-<toolname>
 The first one runs the defined tests. It will invoke your tool using a local galaxy instance with the parameters defined in the test and check if the declared result files are actually created. 
 **Galaxy only checks file names and Mime types**. The file content is **not** checked.
 
-If your test works, you can also run the second command and open your browser at: `https://127.0.0.1:9090` and you can invoke the tool via the GUI as well.
+If your test works, you can also run the second command and open your browser at: `http://127.0.0.1:9090` (note: HTTP, not HTTPS) and you can invoke the tool via the GUI as well.
 
 ## Contribute
 
