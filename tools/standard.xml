@@ -1,4 +1,4 @@
-<tool id="3dtrees_standard" name="3DTrees LAS/LAZ Standardization" version="1.0.0" profile="16.04">
+<tool id="3dtrees_standard" name="3DTrees LAS/LAZ Standardization" version="1.0.1" profile="16.04">
     <description>
         las/laz file checks and standardization. 
         The tool loads all point clouds from the specified las/laz fileand performs the
@@ -29,18 +29,26 @@
     </stdio>
 
     <command><![CDATA[
-        cd /src && /usr/local/bin/Rscript run.R
-        --dataset-path '$input'
-        --output-dir '/src' && ls -la .
+        WORK_DIR=\$(pwd) &&
+        cp '$input' input.laz &&
+        /usr/local/bin/Rscript /src/run.R
+        --dataset-path "\$WORK_DIR/input.laz"
+        --output-dir "\$WORK_DIR"
+        --min-density '$min_density'
         ]]>
     </command>
 
     <inputs>
         <param name="input" type="data" format="binary" label="Point Cloud Dataset" help="LAS/LAZ point cloud file to process" />
+        <param argument="--min-density" name="min_density" type="integer" min="1" max="10000" value="10" label="Minimum Point Density" help="Minimum acceptable point density in points per square meter. Files with lower density will fail validation. Default: 10 pts/m² (suitable for ALS data)" />
     </inputs>
 
     <outputs>
-        <data name="pc_standardized" format="binary" label="Standardized Point Cloud" from_work_dir="pc_standardized.laz"/>
+        <data name="pc_standardized" format="laz" label="standardized" from_work_dir="pc_standardized.laz"/>
+        <data name="metadata_json" format="json" label="metadata" from_work_dir="input.json"/>
+        <data name="convex_hull" format="geojson" label="convex_hull" from_work_dir="convex_hull_wgs84.GeoJSON">
+            <filter>True</filter>  <!-- Optional output - may not exist if CRS not transformable -->
+        </data>
     </outputs>
 
     <tests>
@@ -78,7 +86,7 @@ This tool performs a series of checks and standardizations on a LAS/LAZ point cl
     
         When calculating point density, it shall compute the convex hull of X and Y coordinates.
     
-        If the point density is ≤ 1000 points/m², it shall raise an error and recommend checking for ALS data or multiple plots.
+        If the point density is below the minimum threshold (default: 10 points/m²), it shall raise an error and recommend checking for ALS data or multiple plots.
 
 4. Extra Byte Data Type Check
 
