@@ -34,11 +34,13 @@
         /usr/local/bin/Rscript /src/run.R
         --dataset-path "\$WORK_DIR/input.laz"
         --output-dir "\$WORK_DIR"
+        --min-density '$min_density'
         ]]>
     </command>
 
     <inputs>
         <param name="input" type="data" format="binary" label="Point Cloud Dataset" help="LAS/LAZ point cloud file to process" />
+        <param argument="--min-density" name="min_density" type="integer" min="1" max="10000" value="10" label="Minimum Point Density" help="Minimum acceptable point density in points per square meter. Files with lower density will fail validation. Default: 10 pts/m² (suitable for ALS data)" />
     </inputs>
 
     <outputs>
@@ -84,7 +86,7 @@ This tool performs a series of checks and standardizations on a LAS/LAZ point cl
     
         When calculating point density, it shall compute the convex hull of X and Y coordinates.
     
-        If the point density is ≤ 1000 points/m², it shall raise an error and recommend checking for ALS data or multiple plots.
+        If the point density is below the minimum threshold (default: 10 points/m²), it shall raise an error and recommend checking for ALS data or multiple plots.
 
 4. Extra Byte Data Type Check
 
