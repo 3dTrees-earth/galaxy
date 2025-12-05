@@ -1,11 +1,16 @@
-<tool id="3dtrees_overviews" name="3D Trees Overview Generator" version="1.0.0">
+<tool id="3dtrees_overviews" name="3D Trees Overview Generator" version="1.0.3">
   <description>Generate 3D point cloud overview images and animations from LAZ/LAS datasets</description>
   
   <requirements>
-    <container type="docker">ghcr.io/3dtrees-earth/tool_overviews:0.2</container>
+    <container type="docker">3dtrees-tool-overviews:latest</container>
   </requirements>
   
     <command><![CDATA[
+        export HOME=/tmp && 
+        export XDG_CACHE_HOME=/tmp/.cache && 
+        export XDG_CONFIG_HOME=/tmp/.config && 
+        export FONTCONFIG_CACHE=/tmp/.fontconfig && 
+        export MPLCONFIGDIR=/tmp/.matplotlib && 
         python -u /src/run.py 
         --dataset-path '$input' 
         --max-points '$max_points' 
@@ -30,7 +35,7 @@
     
     <param name="image_height" type="integer" value="768" label="Image Height" help="Height of output images in pixels"/>
     
-    <param name="top_views_deg" type="integer" value="10" label="Top View Rotation Step" help="Angular step size for top view rotation in degrees"/>
+    <param name="top_views_deg" type="integer" value="180" label="Top View Rotation Step" help="Angular step size for top view rotation in degrees (180 = 2 views, 120 = 3 views, 90 = 4 views)"/>
     
     <param name="cmap" type="select" label="Color Map" help="Colormap for point cloud visualization">
       <option value="turbo" selected="True">Turbo</option>
@@ -55,15 +60,15 @@
   </inputs>
   
   <outputs>
-    <collection name="top_views" type="list" label="Top View Images">
-      <discover_datasets pattern="(?P&lt;name&gt;top_view_.*\.png)" directory="." recurse="false" visible="false" format="png"/>
+    <collection name="top_views" type="list" label="top_views">
+      <discover_datasets pattern="(?P&lt;name&gt;top_view_.*)\.png" directory="." recurse="false" visible="false" format="png"/>
     </collection>
     
-    <collection name="section_views" type="list" label="Section View Images">
-      <discover_datasets pattern="(?P&lt;name&gt;section_.*\.png)" directory="." recurse="false" visible="false" format="png"/>
+    <collection name="section_views" type="list" label="section_views">
+      <discover_datasets pattern="(?P&lt;name&gt;section_.*)\.png" directory="." recurse="false" visible="false" format="png"/>
     </collection>
     
-    <data name="overview_round" format="gif" label="Overview Animation" from_work_dir="overview_round.gif"/>
+    <data name="overview_round" format="gif" label="overview_animation" from_work_dir="overview_round.gif"/>
   </outputs>
   
   <tests>
