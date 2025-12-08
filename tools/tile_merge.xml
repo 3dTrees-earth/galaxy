@@ -56,7 +56,6 @@
         <data name="output_tile" format="zip" label="Prepared Files" from_work_dir="prepared_files.zip">
             <filter>operation['task'] == "tile"</filter>
         </data>
-<<<<<<< HEAD
         <data name="output_merge" format="laz" label="segmented" from_work_dir="segmented.laz">
             <filter>operation['task'] == "merge"</filter>
         </data>
@@ -123,4 +122,3 @@
         </citation>
     </citations>
 </tool>
-
