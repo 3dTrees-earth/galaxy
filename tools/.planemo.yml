@@ -1,4 +1,0 @@
-# Planemo configuration to load custom datatypes
-galaxy_root: ../galaxy
-galaxy:
-  datatypes_config_file: config/datatypes_conf.xml
