@@ -1,137 +1,89 @@
-<tool id="3dtrees_standard" name="3DTrees LAS/LAZ Standardization" version="1.0.1" profile="16.04">
+<tool id="3dtrees_standardization" name="3Dtrees: LAZ Standardization" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="24.2">
     <description>
-        las/laz file checks and standardization. 
-        The tool loads all point clouds from the specified las/laz fileand performs the
-        following check. If no error occurs, it will write a laz file with Point Format &lt;= 7, which 
-        is necessary to be used with e.g. pylas, in the output folder.
+        laz file checks and standardization.
     </description>
-
+    <macros>
+        <token name="@TOOL_VERSION@">1.0.1</token>
+        <token name="@VERSION_SUFFIX@">0</token>
+    </macros>
     <requirements>
-        <container type="docker">ghcr.io/3dtrees-earth/3dtrees-pc-standard:0.1</container>
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees-pc-standard:@TOOL_VERSION@</container>
     </requirements>
-
-    <stdio>
-        <!-- Treat Docker platform warnings as non-fatal warnings -->
-        <regex match="WARNING: The requested image's platform.*does not match.*" 
-               source="stderr" 
-               level="warning" 
-               description="Docker platform mismatch warning" />
-        <!-- Treat any other warnings as non-fatal -->
-        <regex match="WARNING:.*" 
-               source="stderr" 
-               level="warning" 
-               description="Non-critical warning" />
-        <!-- Treat actual errors as fatal -->
-        <regex match="ERROR:.*" 
-               source="stderr" 
-               level="fatal" 
-               description="Critical error" />
-    </stdio>
-
-    <command><![CDATA[
-        WORK_DIR=\$(pwd) &&
-        cp '$input' input.laz &&
-        /usr/local/bin/Rscript /src/run.R
-        --dataset-path "\$WORK_DIR/input.laz"
-        --output-dir "\$WORK_DIR"
-        --min-density '$min_density'
+    <command detect_errors="exit_code"><![CDATA[
+## needed because the Rscript is following symlinks
+cp '$input' /in/input.laz && 
+cd /src && 
+Rscript run.R
+    --dataset-path /in/input.laz
+    --output-dir .
+    --min-density
+    $min_density &&
+mv /src/pc_standardized.laz '$pc_standardized'
         ]]>
     </command>
-
     <inputs>
-        <param name="input" type="data" format="binary" label="Point Cloud Dataset" help="LAS/LAZ point cloud file to process" />
-        <param argument="--min-density" name="min_density" type="integer" min="1" max="10000" value="10" label="Minimum Point Density" help="Minimum acceptable point density in points per square meter. Files with lower density will fail validation. Default: 10 pts/m² (suitable for ALS data)" />
+        <param name="input" type="data" format="laz" label="Point Cloud Dataset" help="LAZ point cloud to process"/>
+        <param name="min_density" type="integer" value="500" min="1" max="10000" label="Minimum Point Density (points/m²)" help="Minimum required point density in points per square meter. Default: 500 for TLS data. Use lower values (e.g., 10-50) for ALS data."/>
     </inputs>
-
     <outputs>
-        <data name="pc_standardized" format="laz" label="standardized" from_work_dir="pc_standardized.laz"/>
-        <data name="metadata_json" format="json" label="metadata" from_work_dir="input.json"/>
-        <data name="convex_hull" format="geojson" label="convex_hull" from_work_dir="convex_hull_wgs84.GeoJSON">
-            <filter>True</filter>  <!-- Optional output - may not exist if CRS not transformable -->
-        </data>
+        <data name="pc_standardized" format="laz" label="Standardized Point Cloud"/>
     </outputs>
-
     <tests>
         <test>
-            <param name="input" value="Example_Platane.laz"/>
-            <output name="pc_standardized" file="pc_standardized.laz" ftype="binary" compare="re_match"/>
+            <param name="input" value="mikro.laz" ftype="laz"/>
+            <param name="min_density" value="10"/>
+            <output name="pc_standardized">
+                <assert_contents>
+                    <has_size value="100000" delta="50000"/>
+                </assert_contents>
+            </output>
         </test>
     </tests>
-
     <help>
-
-**What it does**
+    **What it does**
 
 This tool performs a series of checks and standardizations on a LAS/LAZ point cloud file. It checks:
 
-1. Basic LAS Validation
+1. **Basic LAS Validation**
+   - Validates the object using las_check()
+   - Ensures the file has at least 100 points
 
-        When a LAS file is loaded, it shall validate the LAS object using las_check().
-    
-        If any errors are returned by las_check(), it shall store them in the error list.
-    
-        If the LAS file has fewer than 100 points, it shall raise an error and skip further processing.
+2. **Bounding Box Consistency**
+   - Updates header if bounding box doesn't match points
+   - Validates spatial extent (all dimensions &gt; 1 meter)
+   - Checks Z range is plausible (-100 to 5500 meters)
 
-2. Bounding Box Consistency
-    
-        If a warning indicates that the header's bounding box does not match the points, it shall update the LAS object and store a warning.
-    
-        When checking spatial extent, it shall calculate the extend in X, Y, and Z dimensions.
-    
-        If any dimension is ≤ 1 meter, it shall raise an error indicating insufficient spatial extent.
-    
-        If the Z dimension range is &lt; -100 or &gt; 5500 meters, it shall raise an error indicating an implausible Z range.
+3. **Point Density Check**
+   - Calculates point density using convex hull
+   - Requires minimum point density (configurable, default: 500 points/m² for TLS)
 
-3. Point Density Check
-    
-        When calculating point density, it shall compute the convex hull of X and Y coordinates.
-    
-        If the point density is below the minimum threshold (default: 10 points/m²), it shall raise an error and recommend checking for ALS data or multiple plots.
+4. **Extra Byte Data Type Check**
+   - Validates extra byte attribute data types
+   - Corrects mismatches if found
 
-4. Extra Byte Data Type Check
+5. **CRS Validation**
+   - Ensures CRS is specified
+   - Validates transformation to EPSG:3857
 
-        When checking extra byte attributes, it shall map each attribute’s data type to the expected R class.
-    
-        If any mismatch is found, it shall raise a warning and attempt to correct the attribute definition.
+6. **Point Data Format Check**
+   - Downgrades format to 7 if necessary
+   - Preserves NIR channel as extra attribute
 
-5. CRS Validation
+7. **Land Coverage Validation**
+   - Validates centroid is on land using Natural Earth data
 
-        If the LAS file lacks a CRS, it shall raise an error.
-    
-        If the CRS exists, it shall attempt to transform the file to EPSG:3857.
-    
-        If the transformation fails, it shall raise an error.
-
-6. Point Data Format Check
-    
-        If the LAS Point Data Format ID &gt; 7, it shall:
-    
-            downgrade the format to 7,
-    
-            rename the NIR channel to "NIRe",
-    
-            raise a warning about potential loss of full waveform data.
-
-7. Land Coverage Validation
-    
-        If the LAS file has a valid and transformable CRS, it shall:
-    
-            calculate the centroid of the bounding box,
-    
-            check whether the centroid lies within a known land area using a shapefile.
-    
-        If the centroid is not on land, it shall raise an error.
-
-8. Output Writing
-    
-        When all checks are complete, it shall:
-    
-            If no errors are present, it shall write the LAZ file to the output folder.
-    
-            If any errors are present, it shall not write the LAZ file to the output folder.
+8. **Output Writing**
+   - Writes standardized LAZ file with Point Format ≤ 7
     </help>
-
+    <creator>
+        <person name="Julian Frey" email="julian.frey@wwd.uni-freiburg.de" url="https://orcid.org/0000-0001-7895-702X"/>
+        <person name="Janusch Vajna-Jehle" email="janusch.jehle@geosense.uni-freiburg.de" url="https://orcid.org/0009-0002-0034-9387"/>
+        <person name="Kilian Gerberding" email="kilian.gerberding@geosense.uni-freiburg.de" url="https://orcid.org/0009-0002-5001-2571"/>
+        <organization name="3Dtrees-Team, University of Freiburg" url="https://github.com/3dTrees-earth"/>
+    </creator>
     <citations>
-        <citation type="bibtex">@misc{3dtrees_standard title = {3D Trees Standardization}, author = {3D Trees Project}, year = {2025}}</citation>
+        <citation type="bibtex">
+            @misc{3dtrees_standard, title = {3D Trees Standardization}, author = {3D Trees Project}, year = {2025}}
+        </citation>
     </citations>
 </tool>
