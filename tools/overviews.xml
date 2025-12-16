@@ -1,4 +1,4 @@
-<tool id="3dtrees_overviews" name="3D Trees Overview Generator" version="1.0.3">
+<tool id="3dtrees_overviews" name="3D Trees Overview Generator" version="1.1.0">
   <description>Generate 3D point cloud overview images and animations from LAZ/LAS datasets</description>
   
   <requirements>
@@ -6,14 +6,18 @@
   </requirements>
   
     <command><![CDATA[
+        mkdir -p input_files &&
+        #for $f in $input
+            ln -s '$f' input_files/'$f.element_identifier' &&
+        #end for
         export HOME=/tmp && 
         export XDG_CACHE_HOME=/tmp/.cache && 
         export XDG_CONFIG_HOME=/tmp/.config && 
         export FONTCONFIG_CACHE=/tmp/.fontconfig && 
         export MPLCONFIGDIR=/tmp/.matplotlib && 
         python -u /src/run.py 
-        --dataset-path '$input' 
-        --max-points '$max_points' 
+        --input-dir input_files
+        --max-total-points '$max_total_points'
         --section-width '$section_width' 
         --image-width '$image_width' 
         --image-height '$image_height' 
@@ -25,9 +29,9 @@
 </command>
 
   <inputs>
-    <param name="input" type="data" format="binary" label="Point Cloud Dataset" help="LAZ/LAS point cloud file to process"/>
+    <param name="input" type="data_collection" collection_type="list" format="binary" label="Point Cloud Collection" help="Collection of LAZ/LAS files. All files will be aggregated into a single overview."/>
     
-    <param name="max_points" type="integer" value="100000000" label="Maximum Points" help="Maximum number of points to process (for downsampling large datasets)"/>
+    <param name="max_total_points" type="integer" value="50000000" label="Max Total Points" help="Maximum total points when aggregating. Points are sampled proportionally from each file."/>
     
     <param name="section_width" type="integer" value="10" label="Section Width" help="Width of section views in meters"/>
     
@@ -73,8 +77,12 @@
   
   <tests>
     <test>
-      <param name="input" value="Example_Platane.laz"/>
-      <param name="max_points" value="1000000"/>
+      <param name="input">
+        <collection type="list">
+          <element name="Example_Platane.laz" value="Example_Platane.laz"/>
+        </collection>
+      </param>
+      <param name="max_total_points" value="1000000"/>
       <param name="section_width" value="5"/>
       <param name="image_width" value="512"/>
       <param name="image_height" value="384"/>
@@ -98,14 +106,14 @@ This tool generates 3D overview visualizations from point cloud datasets (LAZ/LA
 2. **Section Views**: Cross-sectional views from north-south and east-west directions  
 3. **Overview Animation**: An animated GIF showing the rotation sequence
 
-The tool automatically handles large datasets by downsampling to a manageable number of points while preserving the overall structure and appearance.
+When given a collection with multiple files, the tool automatically aggregates all point clouds into a single visualization, sampling proportionally from each file to stay within resource limits.
 
 -----
 
 **Input**
 
-- **Point Cloud Dataset**: LAZ or LAS format point cloud file
-- **Maximum Points**: Limit for downsampling (default: 100M points)
+- **Point Cloud Collection**: Collection of LAZ or LAS format point cloud files
+- **Max Total Points**: Maximum total points when aggregating (default: 50M points). Points are sampled proportionally from each file.
 - **Section Width**: Width of cross-sectional views in meters
 - **Image Dimensions**: Width and height of output images in pixels
 - **Top View Rotation**: Angular step size for rotation sequence
@@ -124,10 +132,10 @@ The tool automatically handles large datasets by downsampling to a manageable nu
 
 **Example**
 
-For a forest point cloud dataset, this tool will generate:
-- 36 top view images (every 10 degrees)
+For a forest point cloud dataset (single or multiple files), this tool will generate:
+- 2 top view images (every 180 degrees by default)
 - 2 section view images (north-south and east-west cuts)
-- 1 animated GIF showing the complete 360° rotation
+- 1 animated GIF showing the complete rotation
 
 The images use height-based coloring to show terrain and vegetation structure.
 
