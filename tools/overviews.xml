@@ -1,5 +1,5 @@
-<tool id="3dtrees_overviews" name="3D Trees Overview Generator" version="1.1.0">
-  <description>Generate 3D point cloud overview images and animations from LAZ/LAS datasets</description>
+<tool id="3dtrees_overviews" name="3D Trees Overview Generator" version="1.2.0">
+  <description>Generate 3D point cloud overview images from LAZ/LAS datasets</description>
   
   <requirements>
     <container type="docker">3dtrees-tool-overviews:latest</container>
@@ -8,7 +8,7 @@
     <command><![CDATA[
         mkdir -p input_files &&
         #for $f in $input
-            ln -s '$f' input_files/'$f.element_identifier' &&
+            ln -s '$f' input_files/'${f.element_identifier}.laz' &&
         #end for
         export HOME=/tmp && 
         export XDG_CACHE_HOME=/tmp/.cache && 
@@ -25,8 +25,13 @@
         --cmap '$cmap' 
         --camera-distance '$camera_distance' 
         --output-dir .
+        2>&1
         ]]>
 </command>
+
+  <stdio>
+    <exit_code range="1:" level="fatal" description="Tool failed"/>
+  </stdio>
 
   <inputs>
     <param name="input" type="data_collection" collection_type="list" format="binary" label="Point Cloud Collection" help="Collection of LAZ/LAS files. All files will be aggregated into a single overview."/>
@@ -52,6 +57,8 @@
       <option value="rainbow">Rainbow</option>
       <option value="jet">Jet</option>
       <option value="hot">Hot</option>
+      <option value="cool">Cool</option>
+      <option value="copper">Copper</option>
       <option value="bone">Bone</option>
       <option value="pink">Pink</option>
       <option value="spring">Spring</option>
@@ -71,8 +78,6 @@
     <collection name="section_views" type="list" label="section_views">
       <discover_datasets pattern="(?P&lt;name&gt;section_.*)\.png" directory="." recurse="false" visible="false" format="png"/>
     </collection>
-    
-    <data name="overview_round" format="gif" label="overview_animation" from_work_dir="overview_round.gif"/>
   </outputs>
   
   <tests>
@@ -92,7 +97,6 @@
       <output_collection name="top_views" type="list">
         <element name="top_view_00.png" file="top_view_00.png" ftype="png"/>
       </output_collection>
-      <output name="overview_round" file="overview_round.gif" ftype="gif"/>
     </test>
   </tests>
   
@@ -103,8 +107,7 @@
 This tool generates 3D overview visualizations from point cloud datasets (LAZ/LAS files). It creates:
 
 1. **Top View Images**: A series of top-down views rotated around the point cloud center
-2. **Section Views**: Cross-sectional views from north-south and east-west directions  
-3. **Overview Animation**: An animated GIF showing the rotation sequence
+2. **Section Views**: Cross-sectional views from north-south and east-west directions
 
 When given a collection with multiple files, the tool automatically aggregates all point clouds into a single visualization, sampling proportionally from each file to stay within resource limits.
 
@@ -116,17 +119,16 @@ When given a collection with multiple files, the tool automatically aggregates a
 - **Max Total Points**: Maximum total points when aggregating (default: 50M points). Points are sampled proportionally from each file.
 - **Section Width**: Width of cross-sectional views in meters
 - **Image Dimensions**: Width and height of output images in pixels
-- **Top View Rotation**: Angular step size for rotation sequence
-- **Color Map**: Visualization color scheme (height-based coloring)
-- **Camera Distance**: Distance from point cloud center for rendering
+- **Top View Rotation**: Degree step for rotation views (180° = 2 views, 90° = 4 views)
+- **Color Map**: Color scheme for visualization
+- **Camera Distance**: Distance multiplier for camera positioning
 
 -----
 
 **Output**
 
-- **Top View Images**: Collection of PNG images showing top-down views at different rotation angles
-- **Section View Images**: Collection of PNG images showing cross-sectional views
-- **Overview Animation**: GIF file showing the complete rotation sequence
+- **Top Views Collection**: PNG images of top-down views at different rotation angles
+- **Section Views Collection**: PNG images of cross-sectional views
 
 -----
 
@@ -135,7 +137,6 @@ When given a collection with multiple files, the tool automatically aggregates a
 For a forest point cloud dataset (single or multiple files), this tool will generate:
 - 2 top view images (every 180 degrees by default)
 - 2 section view images (north-south and east-west cuts)
-- 1 animated GIF showing the complete rotation
 
 The images use height-based coloring to show terrain and vegetation structure.
 

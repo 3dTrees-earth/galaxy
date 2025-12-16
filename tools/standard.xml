@@ -1,4 +1,4 @@
-<tool id="3dtrees_standard" name="3DTrees LAS/LAZ Standardization" version="1.0.1" profile="16.04">
+<tool id="3dtrees_standardization" name="3DTrees LAS/LAZ Standardization" version="1.0.1" profile="16.04">
     <description>
         las/laz file checks and standardization. 
         The tool loads all point clouds from the specified las/laz fileand performs the
@@ -60,7 +60,7 @@
 
     <help>
 
-**What it does**
+    **What it does**
 
 This tool performs a series of checks and standardizations on a LAS/LAZ point cloud file. It checks:
 
