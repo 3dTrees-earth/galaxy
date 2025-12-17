@@ -1,5 +1,5 @@
-<tool id="3dtrees_py3dtiles" name="3D Trees Py3DTiles Converter" version="1.0.4" profile="16.04">
-    <description>Convert LAS/LAZ point clouds to Cesium 3D Tiles with custom attribute support</description>
+<tool id="3dtrees_py3dtiles" name="3D Trees Py3DTiles Converter" version="2.0.0" profile="16.04">
+    <description>Convert LAS/LAZ collection to Cesium 3D Tiles (merged output)</description>
 
     <requirements>
         <container type="docker">3dtrees-tool-py3dtiles:latest</container>
@@ -7,10 +7,13 @@
 
     <command><![CDATA[
         export NUMBA_CACHE_DIR=\$TMPDIR &&
-        ln -s '$input' input.laz &&
+        mkdir -p input_files &&
         mkdir -p tiles_output &&
+        #for $f in $input
+            ln -s '$f' input_files/'${f.element_identifier}.laz' &&
+        #end for
         python /src/run.py
-        --input input.laz
+        --input input_files
         --output-dir tiles_output
         #if $extra_fields
             --extra-fields '$extra_fields'
@@ -21,11 +24,16 @@
         #if $overwrite
             --overwrite
         #end if
+        2>&1
         ]]>
     </command>
 
+    <stdio>
+        <exit_code range="1:" level="fatal" description="Tool failed"/>
+    </stdio>
+
     <inputs>
-        <param name="input" type="data" format="binary" label="Point Cloud Dataset" help="LAS/LAZ point cloud file to convert to 3D Tiles" />
+        <param name="input" type="data_collection" collection_type="list" format="binary" label="Point Cloud Collection" help="Collection of LAZ/LAS files to merge and convert to 3D Tiles" />
         
         <param name="extra_fields" type="text" optional="true" label="Extra Fields" help="Comma-separated list of extra fields to include in tiles (e.g., 'PredInstance' for segmentation visualization). Leave empty to include only standard fields." />
         
@@ -59,21 +67,20 @@
 
 **What it does**
 
-This tool converts LAS/LAZ point cloud files to Cesium 3D Tiles format using py3dtiles. Unlike other tiling tools (e.g., gocesiumtiler), py3dtiles supports custom attributes, which is essential for visualizing segmentation results and other point cloud classifications.
+This tool converts a collection of LAS/LAZ point cloud files to a single Cesium 3D Tiles tileset using py3dtiles. 
 
-The tool automatically:
+**Key features:**
 
-1. Detects the coordinate reference system (CRS) from the input file
-2. Transforms coordinates to ECEF (EPSG:4978) for proper Cesium visualization if CRS is available
-3. Preserves custom attributes like segmentation IDs when specified
-4. Generates an optimized octree structure for efficient web visualization
-5. Post-processes tileset structure to fix potential URI path issues
+1. **Memory-efficient merging**: Uses streaming to merge multiple files with constant memory (~50MB) regardless of total dataset size
+2. **Custom attributes**: Supports extra point attributes like PredInstance for segmentation visualization
+3. **Automatic CRS transformation**: Transforms to ECEF (EPSG:4978) for proper Cesium visualization
+4. **Out-of-core processing**: py3dtiles handles large merged files efficiently
 
 -----
 
 **Input**
 
-- **Point Cloud Dataset**: LAS or LAZ format point cloud file
+- **Point Cloud Collection**: Collection of LAZ/LAS files (e.g., segmented outputs from the merge step)
 - **Extra Fields**: Optional comma-separated list of extra point attributes to include (e.g., "PredInstance" for instance segmentation)
 - **Output CRS**: EPSG code for output coordinates (default: 4978 for ECEF). Leave empty to keep original coordinates.
 - **Overwrite**: Clear output directory before conversion
@@ -82,37 +89,17 @@ The tool automatically:
 
 **Output**
 
-- **3D Tileset Metadata**: The main tileset.json file that describes the tile structure
-- **3D Tile Files**: Collection of binary tile files (.pnts format) containing the point cloud data
+- **tileset.json**: The main tileset metadata file
+- **preview.pnts**: Preview tile for quick loading
+- **points collection**: All tile files (.pnts format) containing the point cloud data
 
 The output can be directly hosted on a web server and visualized using CesiumJS.
 
 -----
 
-**Use Cases**
+**Workflow Integration**
 
-1. **Standard Visualization**: Convert standardized point clouds to 3D Tiles for web-based viewing
-2. **Segmentation Visualization**: Include custom attributes like "PredInstance" to visualize tree segmentation results
-3. **Custom Attributes**: Preserve any extra point attributes (e.g., quality scores, classifications) for specialized visualization
-
------
-
-**Technical Details**
-
-- **Coordinate Transformation**: Files with CRS metadata are automatically transformed to ECEF (EPSG:4978) for proper Cesium camera controls
-- **Files without CRS**: Coordinates are preserved as-is, assuming they're already in a suitable local/relative system
-- **Custom Attributes**: Full support for extra dimensional attributes via py3dtiles
-- **Format**: Generates Cesium 3D Tiles v1.0 with PNTS (Point Cloud) tiles
-
------
-
-**Comparison with gocesiumtiler**
-
-While gocesiumtiler is faster, py3dtiles is chosen for this workflow because:
-
-- Supports custom point attributes (essential for segmentation visualization)
-- Includes bug fixes for specific use cases
-- Better handling of coordinate transformations with pyproj
+In the EndToEndPipeline workflow, this tool receives the segmented LAZ collection from the merge step and produces a single unified 3D Tiles tileset for the entire dataset.
 
     </help>
 
