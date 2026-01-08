@@ -1,0 +1,94 @@
+<tool id="3dtrees_collection_check" name="3DTrees Collection Check" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="24.2">
+    <description>Validate collection of LAS/LAZ files for consistency</description>
+    <macros>
+        <token name="@TOOL_VERSION@">1.1.0</token>
+        <token name="@VERSION_SUFFIX@">0</token>
+    </macros>
+    <requirements>
+        <container type="docker">3dtrees-pc-standard:collections</container>
+    </requirements>
+
+    <stdio>
+        <regex match="WARNING: The requested image's platform.*does not match.*" 
+               source="stderr" 
+               level="warning" 
+               description="Docker platform mismatch warning" />
+        <regex match="WARNING:.*" 
+               source="stderr" 
+               level="warning" 
+               description="Non-critical warning" />
+        <regex match="ERROR:.*" 
+               source="stderr" 
+               level="fatal" 
+               description="Critical error" />
+    </stdio>
+
+    <command detect_errors="exit_code"><![CDATA[
+        mkdir -p input_files &&
+        #for $f in $input
+            cp '$f' input_files/'${f.element_identifier}.laz' &&
+        #end for
+        /usr/local/bin/Rscript /src/run.R
+        --dataset-path input_files
+        --output-dir .
+        --method collection
+    ]]></command>
+
+    <inputs>
+        <param name="input" type="data_collection" collection_type="list" format="binary" 
+               label="Point Cloud Collection" 
+               help="Collection of LAS/LAZ files to analyze for consistency (CRS, attributes, overlaps)"/>
+    </inputs>
+
+    <outputs>
+        <data name="collection_summary" format="json" label="collection_summary" from_work_dir="collection_summary.json"/>
+    </outputs>
+
+    <tests>
+        <test expect_num_outputs="1">
+            <param name="input">
+                <collection type="list">
+                    <element name="Example_Platane" value="Example_Platane.laz"/>
+                </collection>
+            </param>
+            <output name="collection_summary">
+                <assert_contents>
+                    <has_text text="n_tiles"/>
+                    <has_text text="homogeneous_crs"/>
+                </assert_contents>
+            </output>
+        </test>
+    </tests>
+
+    <help><![CDATA[
+**What it does**
+
+Analyzes a collection of LAS/LAZ files for consistency and quality:
+
+- **CRS Homogeneity**: Checks if all files share the same coordinate reference system
+- **Attribute Consistency**: Verifies attribute names and types across files
+- **Tile Geometry**: Detects overlaps and gaps between tiles
+- **Global Statistics**: Computes aggregated statistics across all files
+- **Removeable Attributes**: Identifies attributes that are all-NA or constant-zero
+
+Output: ``collection_summary.json`` containing:
+- Collection-level checks and flags
+- Per-file metadata (CRS, attributes, point counts, convex hulls)
+- Suggested removeable attributes for standardization
+
+**Workflow Usage**
+
+Run this tool first in the EndToEndPipeline to validate the collection before standardization.
+    ]]></help>
+
+    <creator>
+        <person name="Mirko Mälicke" identifier="0000-0002-0424-2651"/>
+        <organization name="3Dtrees-Team, University of Freiburg" url="https://github.com/3dTrees-earth"/>
+    </creator>
+
+    <citations>
+        <citation type="bibtex">
+            @misc{3dtrees_standard, title = {3D Trees Standardization}, author = {3D Trees Project}, year = {2025}}
+        </citation>
+    </citations>
+</tool>

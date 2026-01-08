@@ -1,13 +1,11 @@
-<tool id="3dtrees_standardization" name="3DTrees LAS/LAZ Standardization" version="1.0.1" profile="16.04">
-    <description>
-        las/laz file checks and standardization. 
-        The tool loads all point clouds from the specified las/laz fileand performs the
-        following check. If no error occurs, it will write a laz file with Point Format &lt;= 7, which 
-        is necessary to be used with e.g. pylas, in the output folder.
-    </description>
-
+<tool id="3dtrees_standardization" name="3DTrees LAS/LAZ Standardization" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="24.2">
+    <description>Standardize individual LAS/LAZ point cloud files</description>
+    <macros>
+        <token name="@TOOL_VERSION@">1.1.0</token>
+        <token name="@VERSION_SUFFIX@">0</token>
+    </macros>
     <requirements>
-        <container type="docker">ghcr.io/3dtrees-earth/3dtrees-pc-standard:0.1</container>
+        <container type="docker">3dtrees-pc-standard:collections</container>
     </requirements>
 
     <stdio>
@@ -28,110 +26,83 @@
                description="Critical error" />
     </stdio>
 
-    <command><![CDATA[
+    <command detect_errors="exit_code"><![CDATA[
         WORK_DIR=\$(pwd) &&
         cp '$input' input.laz &&
         /usr/local/bin/Rscript /src/run.R
         --dataset-path "\$WORK_DIR/input.laz"
         --output-dir "\$WORK_DIR"
+        --method single_file
         --min-density '$min_density'
-        ]]>
-    </command>
+        #if $removeable_attributes:
+            --removeable_attributes $removeable_attributes
+        #end if
+    ]]></command>
 
     <inputs>
-        <param name="input" type="data" format="binary" label="Point Cloud Dataset" help="LAS/LAZ point cloud file to process" />
-        <param argument="--min-density" name="min_density" type="integer" min="1" max="10000" value="10" label="Minimum Point Density" help="Minimum acceptable point density in points per square meter. Files with lower density will fail validation. Default: 10 pts/m² (suitable for ALS data)" />
+        <param name="input" type="data" format="binary" label="Point Cloud File" 
+               help="LAS/LAZ point cloud file to standardize. Connect a collection and Galaxy will map over each file."/>
+        <param argument="--min-density" name="min_density" type="integer" min="1" max="10000" value="10" 
+               label="Minimum Point Density" 
+               help="Minimum acceptable point density in points per square meter. Default: 10 pts/m²"/>
+        <param name="removeable_attributes" type="text" value="" optional="true"
+               label="Attributes to Remove" 
+               help="Space-separated list of attribute names to remove (e.g., 'Intensity UserData'). Leave empty for auto-detection."/>
     </inputs>
 
     <outputs>
-        <data name="pc_standardized" format="laz" label="standardized" from_work_dir="pc_standardized.laz"/>
+        <data name="pc_standardized" format="laz" label="standardized" from_work_dir="input.laz"/>
         <data name="metadata_json" format="json" label="metadata" from_work_dir="input.json"/>
-        <data name="convex_hull" format="geojson" label="convex_hull" from_work_dir="convex_hull_wgs84.GeoJSON">
-            <filter>True</filter>  <!-- Optional output - may not exist if CRS not transformable -->
-        </data>
+        <data name="convex_hull" format="geojson" label="convex_hull" from_work_dir="input_convex_hull_wgs84.GeoJSON"/>
     </outputs>
 
     <tests>
-        <test>
+        <test expect_num_outputs="3">
             <param name="input" value="Example_Platane.laz"/>
-            <output name="pc_standardized" file="pc_standardized.laz" ftype="binary" compare="re_match"/>
+            <param name="min_density" value="10"/>
+            <output name="pc_standardized" ftype="laz">
+                <assert_contents>
+                    <has_size min="1000"/>
+                </assert_contents>
+            </output>
         </test>
     </tests>
 
-    <help>
+    <help><![CDATA[
+**What it does**
 
-    **What it does**
+Standardizes individual LAS/LAZ point cloud files:
 
-This tool performs a series of checks and standardizations on a LAS/LAZ point cloud file. It checks:
+1. **LAS Validation**: Runs ``las_check()`` and fixes header issues
+2. **Bounding Box**: Validates and corrects header bounding box
+3. **Point Density**: Checks density meets minimum threshold
+4. **CRS Validation**: Verifies CRS is defined and transformable to EPSG:4978
+5. **Land Check**: Confirms centroid is on land (using Natural Earth data)
+6. **Format Normalization**: Downgrades Point Data Format to ≤7 for compatibility
+7. **Attribute Cleanup**: Optionally removes specified attributes
 
-1. Basic LAS Validation
+**Outputs:**
+- Standardized ``.laz`` file
+- Metadata JSON with pre/post standardization info
+- Convex hull GeoJSON in WGS84
 
-        When a LAS file is loaded, it shall validate the LAS object using las_check().
-    
-        If any errors are returned by las_check(), it shall store them in the error list.
-    
-        If the LAS file has fewer than 100 points, it shall raise an error and skip further processing.
+**Workflow Usage**
 
-2. Bounding Box Consistency
-    
-        If a warning indicates that the header's bounding box does not match the points, it shall update the LAS object and store a warning.
-    
-        When checking spatial extent, it shall calculate the extend in X, Y, and Z dimensions.
-    
-        If any dimension is ≤ 1 meter, it shall raise an error indicating insufficient spatial extent.
-    
-        If the Z dimension range is &lt; -100 or &gt; 5500 meters, it shall raise an error indicating an implausible Z range.
+In collection-based workflows:
+1. Run **3DTrees Collection Check** first to validate the collection
+2. Connect collection to this tool - Galaxy maps over each file automatically
+3. Use ``removeable_attributes`` from collection check for cleaner output
 
-3. Point Density Check
-    
-        When calculating point density, it shall compute the convex hull of X and Y coordinates.
-    
-        If the point density is below the minimum threshold (default: 10 points/m²), it shall raise an error and recommend checking for ALS data or multiple plots.
+    ]]></help>
 
-4. Extra Byte Data Type Check
-
-        When checking extra byte attributes, it shall map each attribute’s data type to the expected R class.
-    
-        If any mismatch is found, it shall raise a warning and attempt to correct the attribute definition.
-
-5. CRS Validation
-
-        If the LAS file lacks a CRS, it shall raise an error.
-    
-        If the CRS exists, it shall attempt to transform the file to EPSG:3857.
-    
-        If the transformation fails, it shall raise an error.
-
-6. Point Data Format Check
-    
-        If the LAS Point Data Format ID &gt; 7, it shall:
-    
-            downgrade the format to 7,
-    
-            rename the NIR channel to "NIRe",
-    
-            raise a warning about potential loss of full waveform data.
-
-7. Land Coverage Validation
-    
-        If the LAS file has a valid and transformable CRS, it shall:
-    
-            calculate the centroid of the bounding box,
-    
-            check whether the centroid lies within a known land area using a shapefile.
-    
-        If the centroid is not on land, it shall raise an error.
-
-8. Output Writing
-    
-        When all checks are complete, it shall:
-    
-            If no errors are present, it shall write the LAZ file to the output folder.
-    
-            If any errors are present, it shall not write the LAZ file to the output folder.
-    </help>
+    <creator>
+        <person name="Mirko Mälicke" identifier="0000-0002-0424-2651"/>
+        <organization name="3Dtrees-Team, University of Freiburg" url="https://github.com/3dTrees-earth"/>
+    </creator>
 
     <citations>
-        <citation type="bibtex">@misc{3dtrees_standard title = {3D Trees Standardization}, author = {3D Trees Project}, year = {2025}}</citation>
+        <citation type="bibtex">
+            @misc{3dtrees_standard, title = {3D Trees Standardization}, author = {3D Trees Project}, year = {2025}}
+        </citation>
     </citations>
 </tool>
