@@ -27,7 +27,6 @@
             --max-radius '$operation.max_radius'
             --radius-step '$operation.radius_step'
             --number-of-threads \${GALAXY_SLOTS:-4}
-            && mv final_pc.laz segmented.laz
         #end if
             ]]>
     </command>
