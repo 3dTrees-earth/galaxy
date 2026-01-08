@@ -5,7 +5,7 @@
         <token name="@VERSION_SUFFIX@">0</token>
     </macros>
     <requirements>
-        <container type="docker">3dtrees-pc-standard:collections</container>
+        <container type="docker">ghcr.io/3dtrees-earth/3dtrees-pc-standard:@TOOL_VERSION@</container>
     </requirements>
 
     <stdio>
