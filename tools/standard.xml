@@ -11,7 +11,7 @@
         WORK_DIR=\$(pwd) &&
         #if $mode.task == 'single_file':
             cp '$mode.input' input.laz &&
-            /usr/local/bin/Rscript /src/run.R
+            Rscript /src/run.R
             --dataset-path "\$WORK_DIR/input.laz"
             --output-dir "\$WORK_DIR"
             --method single_file
@@ -24,7 +24,7 @@
             #for $f in $mode.input_collection
                 cp '$f' input_files/'${f.element_identifier}.laz' &&
             #end for
-            /usr/local/bin/Rscript /src/run.R
+            Rscript /src/run.R
             --dataset-path "\$WORK_DIR/input_files"
             --output-dir "\$WORK_DIR"
             --method collection
