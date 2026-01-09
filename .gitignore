@@ -1,3 +1,4 @@
 .DS_Store
 tools/test-data/*
 tools/tool_test*
+tools/tool_test_output*
