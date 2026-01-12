@@ -2,7 +2,7 @@
     <description>Subsampling, tiling, merging and matching of point clouds</description>
     <macros>
         <token name="@TOOL_VERSION@">1.0.1</token>
-        <token name="@VERSION_SUFFIX@">1</token>
+        <token name="@VERSION_SUFFIX@">2</token>
     </macros>
     <requirements>
         <container type="docker">ghcr.io/3dtrees-earth/3dtrees_tile_merge:@TOOL_VERSION@</container>
@@ -12,13 +12,13 @@
         --dataset-path '$input' 
         --output-dir .
         --task '$operation.task'
+        --number-of-threads \${GALAXY_SLOTS:-4}
         #if $operation.task == 'tile':
             --tile-size '$operation.tile_size'
             --overlap '$operation.overlap'
             --tiling-threshold '$operation.tiling_threshold'
             --points-threshold '$operation.points_threshold'
             --subsampling-resolution '$operation.subsampling_resolution'
-            --number-of-threads \${GALAXY_SLOTS:-4}
         #end if
         #if $operation.task == 'merge':
             --buffer '$operation.buffer'
@@ -26,7 +26,6 @@
             --initial-radius '$operation.initial_radius'
             --max-radius '$operation.max_radius'
             --radius-step '$operation.radius_step'
-            --number-of-threads \${GALAXY_SLOTS:-4}
         #end if
             ]]>
     </command>
@@ -85,7 +84,11 @@
             <conditional name="operation">
                 <param name="task" value="merge"/>
             </conditional>
-            <output name="output_merge" file="segmented.laz" ftype="laz" compare="sim_size" delta="100000"/>
+            <output name="output_merge">
+                <assert_contents>
+                    <has_size value="200000" delta="100000"/>
+                </assert_contents>
+            </output>
         </test>
     </tests>
     <help format="markdown">
