@@ -53,10 +53,10 @@
         </conditional>
     </inputs>
     <outputs>
-        <data name="output_tile" format="zip" label="prepared_files" from_work_dir="prepared_files.zip">
+        <data name="output_tile" format="zip" label="Prepared Files" from_work_dir="prepared_files.zip">
             <filter>operation['task'] == "tile"</filter>
         </data>
-        <data name="output_merge" format="laz" label="segmented" from_work_dir="segmented.laz">
+        <data name="output_merge" format="laz" label="Segmented Point Cloud" from_work_dir="segmented.laz">
             <filter>operation['task'] == "merge"</filter>
         </data>
     </outputs>
