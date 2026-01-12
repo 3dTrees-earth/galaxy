@@ -2,7 +2,7 @@
     <description>Subsampling, tiling, merging and matching of point clouds</description>
     <macros>
         <token name="@TOOL_VERSION@">1.0.1</token>
-        <token name="@VERSION_SUFFIX@">1</token>
+        <token name="@VERSION_SUFFIX@">2</token>
     </macros>
     <requirements>
         <container type="docker">ghcr.io/3dtrees-earth/3dtrees_tile_merge:@TOOL_VERSION@</container>
