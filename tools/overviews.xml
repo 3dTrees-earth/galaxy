@@ -64,10 +64,10 @@
   </inputs>
   <outputs>
     <collection name="top_views" type="list" label="Top View Images">
-      <discover_datasets pattern="(?P&lt;name&gt;top_view_.*\.png)" directory="./output_dir/" recurse="false" visible="false" format="png"/>
+      <discover_datasets pattern="(?P&lt;name&gt;top_view_.*)\.png" directory="./output_dir/" recurse="false" visible="false" format="png"/>
     </collection>
     <collection name="section_views" type="list" label="Section View Images">
-      <discover_datasets pattern="(?P&lt;name&gt;section_.*\.png)" directory="./output_dir/" recurse="false" visible="false" format="png"/>
+      <discover_datasets pattern="(?P&lt;name&gt;section_.*)\.png" directory="./output_dir/" recurse="false" visible="false" format="png"/>
     </collection>
   </outputs>
   <tests>
@@ -85,7 +85,7 @@
       <param name="cmap" value="viridis"/>
       <param name="camera_distance" value="25.0"/>
       <output_collection name="top_views" type="list">
-        <element name="top_view_00.png" ftype="png">
+        <element name="top_view_00" ftype="png">
           <assert_contents>
             <has_size size="160000" delta="100000"/>
           </assert_contents>
