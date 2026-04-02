@@ -33,7 +33,7 @@
         --treeinfo
         #end if
         #if $branch_data:
-        --branch_data
+        --branch-data
         #end if
         ]]>
     </command>
